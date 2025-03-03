@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">RecycleApp</string>
+    <string name="app_name">Recycle App</string>
+    <string name="title_activity_maps">Recycle App</string>
 </resources>
