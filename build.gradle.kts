@@ -1,22 +1,7 @@
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath(libs.gradle)
-        classpath(libs.secretsGradlePlugin)
-        classpath(libs.kotlinGradlePlugin)
-    }
-}
-
-allprojects {
-    repositories {
-        mavenCentral()
-        google()
-    }
-}
-
-tasks.register<Delete>("clean") {
-    delete(rootProject.layout.buildDirectory)
+plugins {
+//    id("com.android.application") apply false
+//    id("org.jetbrains.kotlin.android") apply false
+//    id("com.google.gms.google-services") apply false
+//    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin") apply false
+//    id("kotlin-kapt") apply false
 }

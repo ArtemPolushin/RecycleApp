@@ -13,5 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+pluginManagement {
+    repositories {
+        google()
+        gradlePluginPortal()
+        mavenCentral()
+    }
+
+    plugins {
+        id("com.android.application") version "8.6.1"
+        id("org.jetbrains.kotlin.android") version "2.1.10"
+        id("com.google.gms.google-services") version "4.4.2"
+        id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin") version "2.0.1"
+        id("org.jetbrains.kotlin.kapt") version "2.1.10"
+        id("com.google.dagger.hilt.android") version "2.53.1"
+    }
+}
+
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
 
 include (":app")
