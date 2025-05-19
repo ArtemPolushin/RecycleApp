@@ -6,7 +6,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-// Цветовая палитра
 private val LightColorPalette = lightColorScheme(
     primary = Color(0xFF6200EE),
     secondary = Color(0xFF03DAC5),
@@ -20,7 +19,6 @@ private val LightColorPalette = lightColorScheme(
     onError = Color.White
 )
 
-// Типография (шрифты, размер шрифтов и т.д.)
 private val AppTypography = Typography()
 
 @Composable

@@ -20,8 +20,8 @@ class AuthRepository @Inject constructor(
 ) : IAuthRepository {
     override val currentUser get() = auth.currentUser
 
-    override suspend fun firebaseSignUpWithEmailAndPassword(
-        name:String, email: String, password: String
+    override suspend fun signUpWithEmailAndPassword(
+        email: String, password: String
     ): SignUpResponse {
         return try {
             auth.createUserWithEmailAndPassword(email, password).await()
@@ -40,7 +40,7 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    override suspend fun firebaseSignInWithEmailAndPassword(
+    override suspend fun signInWithEmailAndPassword(
         email: String, password: String
     ): SignInResponse {
         return try {
@@ -51,7 +51,7 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    override suspend fun reloadFirebaseUser(): ReloadUserResponse {
+    override suspend fun reloadUser(): ReloadUserResponse {
         return try {
             auth.currentUser?.reload()?.await()
             Success(true)

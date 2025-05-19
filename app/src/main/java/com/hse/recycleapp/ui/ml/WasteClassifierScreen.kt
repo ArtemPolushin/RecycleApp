@@ -11,6 +11,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -20,13 +21,20 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.scale
+import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WasteClassifierScreen(navController: NavHostController) {
+fun WasteClassifierScreen(
+    navController: NavHostController,
+    viewModel: WasteClassifierViewModel = viewModel()
+) {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
-
+    var classificationResult by remember { mutableStateOf<String?>(null) }
+    var classificationInProgress by remember { mutableStateOf(false) }
     val context = LocalContext.current
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
 
@@ -36,64 +44,92 @@ fun WasteClassifierScreen(navController: NavHostController) {
             imageUri = it
         }
     )
-    Scaffold(modifier = Modifier.fillMaxSize()) { paddingValues ->
-        Column(
-            Modifier.fillMaxSize().padding(paddingValues),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
 
-            imageUri?.let {
-                if (Build.VERSION.SDK_INT < 28)
-                    bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, it)
-                else {
-                    val source = ImageDecoder.createSource(context.contentResolver, it)
-                    bitmap = ImageDecoder.decodeBitmap(
-                        source,
-                        ImageDecoder.OnHeaderDecodedListener { decoder, info, source ->
-                            decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
-                            decoder.isMutableRequired = true
-                        })
-                }
+    LaunchedEffect(imageUri) {
+        imageUri?.let {
+            classificationInProgress = true
+            classificationResult = null
+
+            bitmap = if (Build.VERSION.SDK_INT < 28) {
+                MediaStore.Images.Media.getBitmap(context.contentResolver, it)
+            } else {
+                val source = ImageDecoder.createSource(context.contentResolver, it)
+                ImageDecoder.decodeBitmap(
+                    source,
+                    ImageDecoder.OnHeaderDecodedListener { decoder, _, _ ->
+                        decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+                        decoder.isMutableRequired = true
+                    })
             }
+            bitmap?.let { bmp ->
+                classificationResult = withContext(Dispatchers.Default) {
+                    TensorFLowHelper.classifyImage(bmp, context)
+                }
+                classificationInProgress = false
+            }
+        }
+    }
 
-            bitmap?.let {
-                Image(
-                    bitmap = it.asImageBitmap(),
-                    contentDescription = "Image from the gallery",
-                    Modifier.size(400.dp)
-                )
-                Spacer(modifier = Modifier.padding(20.dp))
-                val imageSize = 180
-                val scaledBitmap = it.scale(imageSize, imageSize, false);
-                TensorFLowHelper.ClassifyImage(scaledBitmap) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            TopAppBar(title = { Text("Классификация отходов") })
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                bitmap?.let { bmp ->
+                    Image(
+                        bitmap = bmp.asImageBitmap(),
+                        contentDescription = "Изображение из галереи",
+                        modifier = Modifier.size(400.dp)
+                    )
 
-                        Text(text = "Image is classified as:")
-                        Text(text = it, color = Color.Black, fontSize = 24.sp)
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    if (classificationInProgress) {
+                        CircularProgressIndicator()
+                    } else {
+                        classificationResult?.let {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("Изображение определено как:")
+                                Text(it, color = Color.Black, fontSize = 24.sp)
+                            }
+                        } ?: CircularProgressIndicator()
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.padding(20.dp))
-
-            Button(onClick = {
-                launcher.launch("image/*")
-            }, modifier = Modifier.fillMaxWidth()) {
-                Text(text = "Pick an image")
-            }
-
-            Spacer(modifier = Modifier.padding(20.dp))
-
-            Button(
-                onClick = { navController.navigate("map") },
-                modifier = Modifier.fillMaxWidth()
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("Open map")
+                Button(
+                    onClick = { launcher.launch("image/*") },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Выбрать изображение")
+                }
+
+                OutlinedButton(
+                    onClick = { navController.navigate("map") },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Открыть карту")
+                }
             }
         }
     }

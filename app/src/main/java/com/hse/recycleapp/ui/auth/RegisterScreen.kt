@@ -16,9 +16,17 @@ import com.hse.recycleapp.domain.model.Response
 @Composable
 fun RegisterScreen(
     navController: NavHostController,
+    redirect: String? = null,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
-    val response = viewModel.signUpResponse
+    val signUpResponse = viewModel.signUpResponse
+    val signInResponse = viewModel.signInResponse
+
+    val redirectRoute = navController.currentBackStackEntry
+        ?.arguments?.getString("redirect") ?: "map"
+
+    var confirmPassword by remember { mutableStateOf("") }
+    var passwordMismatch by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -28,13 +36,6 @@ fun RegisterScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("Регистрация", fontSize = 24.sp, modifier = Modifier.padding(bottom = 16.dp))
-
-        OutlinedTextField(
-            value = viewModel.name,
-            onValueChange = { viewModel.name = it },
-            label = { Text("Имя") },
-            modifier = Modifier.fillMaxWidth()
-        )
 
         OutlinedTextField(
             value = viewModel.email,
@@ -51,34 +52,63 @@ fun RegisterScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = { Text("Подтверждение пароля") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth(),
+            isError = passwordMismatch
+        )
+
+        if (passwordMismatch) {
+            Text(
+                text = "Пароли не совпадают",
+                color = Color.Red,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
 
-        when (response) {
+        when (signUpResponse) {
             is Response.Idle -> Button(
-                onClick = { viewModel.signUp() },
+                onClick = {
+                    if (viewModel.password != confirmPassword) {
+                        passwordMismatch = true
+                    } else {
+                        passwordMismatch = false
+                        viewModel.signUp()
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Регистрация")
+                Text("Зарегистрироваться")
             }
 
             is Response.Loading -> CircularProgressIndicator()
 
             is Response.Success -> {
                 LaunchedEffect(Unit) {
-                    navController.navigate("login") {
-                        popUpTo("register") { inclusive = true }
-                    }
+                    viewModel.signIn()
                 }
             }
 
             is Response.Failure -> {
                 Text(
-                    text = "Ошибка: ${response.e.message}",
+                    text = "Ошибка регистрации: ${signUpResponse.e.message}",
                     color = Color.Red,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 Button(
-                    onClick = { viewModel.signUp() },
+                    onClick = {
+                        if (viewModel.password != confirmPassword) {
+                            passwordMismatch = true
+                        } else {
+                            passwordMismatch = false
+                            viewModel.signUp()
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Повторить")
@@ -86,10 +116,33 @@ fun RegisterScreen(
             }
         }
 
+        when (signInResponse) {
+            is Response.Success -> {
+                LaunchedEffect(Unit) {
+                    navController.navigate(redirectRoute) {
+                        popUpTo("register") { inclusive = true }
+                    }
+                }
+            }
+
+            is Response.Failure -> {
+                Text(
+                    text = "Ошибка входа: ${signInResponse.e.message}",
+                    color = Color.Red,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+
+            is Response.Loading -> CircularProgressIndicator()
+
+            else -> {}
+        }
+
         Spacer(modifier = Modifier.height(8.dp))
 
-        TextButton(onClick = { navController.navigate("login") }) {
+        TextButton(onClick = { navController.navigate("login?redirect=$redirectRoute") }) {
             Text("Уже есть аккаунт? Войти")
         }
     }
 }
+

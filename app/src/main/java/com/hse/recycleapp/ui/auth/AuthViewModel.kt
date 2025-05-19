@@ -19,7 +19,6 @@ class AuthViewModel @Inject constructor(
 
     var email by mutableStateOf("")
     var password by mutableStateOf("")
-    var name by mutableStateOf("")
     var signInResponse by mutableStateOf<SignInResponse>(Response.Idle)
     var signUpResponse by mutableStateOf<SignUpResponse>(Response.Idle)
 
@@ -27,14 +26,14 @@ class AuthViewModel @Inject constructor(
     fun signIn() {
         viewModelScope.launch {
             signInResponse = Response.Loading
-            signInResponse = authRepository.firebaseSignInWithEmailAndPassword(email, password)
+            signInResponse = authRepository.signInWithEmailAndPassword(email, password)
         }
     }
 
     fun signUp() {
         viewModelScope.launch {
             signUpResponse = Response.Loading
-            signUpResponse = authRepository.firebaseSignUpWithEmailAndPassword(name, email, password)
+            signUpResponse = authRepository.signUpWithEmailAndPassword(email, password)
         }
     }
 }

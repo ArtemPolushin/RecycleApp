@@ -54,9 +54,11 @@ dependencies {
 
     implementation("androidx.compose.material3:material3:1.2.1")
     implementation("com.google.maps.android:maps-compose:6.6.0")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
 
 
     implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("org.tensorflow:tensorflow-lite-gpu:2.3.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     debugImplementation("androidx.compose.ui:ui-test-manifest")
@@ -75,7 +77,6 @@ dependencies {
     implementation("org.tensorflow:tensorflow-lite:2.4.0")
     implementation("org.tensorflow:tensorflow-lite-support:0.1.0")
     implementation("org.tensorflow:tensorflow-lite-metadata:0.1.0")
-
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.7")

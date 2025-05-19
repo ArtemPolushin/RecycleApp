@@ -16,13 +16,13 @@ typealias AuthStateResponse = StateFlow<Boolean>
 interface IAuthRepository {
     val currentUser: FirebaseUser?
 
-    suspend fun firebaseSignUpWithEmailAndPassword(name:String, email: String, password: String): SignUpResponse
+    suspend fun signUpWithEmailAndPassword(email: String, password: String): SignUpResponse
 
     suspend fun sendEmailVerification(): SendEmailVerificationResponse
 
-    suspend fun firebaseSignInWithEmailAndPassword(email: String, password: String): SignInResponse
+    suspend fun signInWithEmailAndPassword(email: String, password: String): SignInResponse
 
-    suspend fun reloadFirebaseUser(): ReloadUserResponse
+    suspend fun reloadUser(): ReloadUserResponse
 
     suspend fun sendPasswordResetEmail(email: String): SendPasswordResetEmailResponse
 

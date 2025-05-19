@@ -16,10 +16,12 @@ import com.hse.recycleapp.domain.model.Response
 @Composable
 fun LoginScreen(
     navController: NavHostController,
+    redirect: String? = null,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val response = viewModel.signInResponse
-
+    val redirectRoute = navController.currentBackStackEntry
+        ?.arguments?.getString("redirect") ?: "map"
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -51,15 +53,14 @@ fun LoginScreen(
                 onClick = { viewModel.signIn() },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Логин")
+                Text("Войти")
             }
 
             is Response.Loading -> CircularProgressIndicator()
 
             is Response.Success -> {
-                // Навигация после успешной авторизации
                 LaunchedEffect(Unit) {
-                    navController.navigate("map") {
+                    navController.navigate(redirectRoute) {
                         popUpTo("login") { inclusive = true }
                     }
                 }
